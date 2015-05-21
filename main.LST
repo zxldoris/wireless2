@@ -1,0 +1,96 @@
+C51 COMPILER V9.02   MAIN                                                                  05/16/2015 21:09:42 PAGE 1   
+
+
+C51 COMPILER V9.02, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: E:\software\keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include<UART.h>
+   3          #include<config.h>
+   4          
+   5          typedef unsigned char uint8;
+   6          typedef unsigned int uint16;
+   7          unsigned char T0H, T0L;         //¶¨Ê±Æ÷²ÎÊý´æ´¢±äÁ¿
+   8          void Timer0_Init(unsigned char ms);
+   9          extern void LCD1602_Init();
+  10          extern void LCD1602_Show(uint8 x,uint8 y,uint8 *dat,uint8 len); //LCD1602ÏÔÊ¾×Ö·û´®£¨x£ººá×ø±ê£¬y£º×Ý×ø±ê£
+             -¬dat£ºÒªÏÔÊ¾µÄ×Ö·ûÊý×é£¬len£ºÒªÏÔÊ¾µÄ³¤¶È£©
+  11          
+  12          void UART_Action(unsigned char *dat, unsigned char len)
+  13          {
+  14   1              unsigned char datout[4] = {0};
+  15   1              if(((dat[0] == dat[6])||(dat[0] == dat[11]))&&(dat[0]>='0' && dat[0]<='9'))
+  16   1                      datout[0] = dat[0];
+  17   1              else if((dat[6] == dat[11]) && (dat[6]>='0' && dat[6]<='9'))
+  18   1                      datout[0] = dat[6];
+  19   1              else return;
+  20   1              if(((dat[1] == dat[7])||(dat[1] == dat[12]))&&(dat[1]>='0' && dat[1]<='9'))
+  21   1                      datout[1] = dat[1];
+  22   1              else if((dat[7] == dat[12]) && (dat[7]>='0' && dat[7]<='9'))
+  23   1                      datout[1] = dat[7];
+  24   1              else return;
+  25   1              if(((dat[2] == dat[8])||(dat[2] == dat[13]))&&(dat[2]=='.'))
+  26   1                      datout[2] = dat[2];
+  27   1              else if((dat[8] == dat[13]) && (dat[8]=='.'))
+  28   1                      datout[2] = dat[8];
+  29   1              else return;
+  30   1              if(((dat[3] == dat[9])||(dat[3] == dat[14]))&&(dat[3]>='0' && dat[3]<='9'))
+  31   1                      datout[3] = dat[3];
+  32   1              else if((dat[9] == dat[14]) && (dat[9]>='0' && dat[9]<='9'))
+  33   1                      datout[3] = dat[9];
+  34   1              else return;    
+  35   1              LCD1602_Clear();
+*** WARNING C206 IN LINE 35 OF MAIN.C: 'LCD1602_Clear': missing function-prototype
+  36   1              LCD1602_Show(0,0,datout,4);
+  37   1      }
+*** WARNING C280 IN LINE 12 OF MAIN.C: 'len': unreferenced local variable
+  38          
+  39          int main()
+  40          {
+  41   1              UART_Conf(600);         //ÅäÖÃ´®¿Ú²¨ÌØÂÊÎª9600
+  42   1              Timer0_Init(1);                 //ÅäÖÃ¶¨Ê±Æ÷ÖÐ¶Ï·¢ÉúÆµÂÊÎª1msÒ»´Î
+  43   1              LCD1602_Init();
+  44   1              while(1)
+  45   1              {
+  46   2                      UART_Driver();          //¼à¿Ø´®¿Ú
+  47   2              }
+  48   1      }
+  49          
+  50          void Timer0_Init(unsigned char ms)
+  51          {
+  52   1              unsigned int temp;                                              //ÓÃÓÚ¼ÆËãµÄÖÐ¼ä±äÁ¿
+C51 COMPILER V9.02   MAIN                                                                  05/16/2015 21:09:42 PAGE 2   
+
+  53   1              temp = 65536 - ms * XTAL * 1000 / 12;   //¼ÆËã¶¨Ê±Æ÷³õÖµ£¬²¢ÅäÖÃÏ°¹ß¼Ä´æÆ÷
+  54   1              T0H = (unsigned char)(temp >> 8);
+  55   1              T0L = (unsigned char)(temp);
+  56   1              TH0 = T0H;
+  57   1              TL0 = T0L;
+  58   1              TMOD &= 0XF0;                                                   //ÅäÖÃ¶¨Ê±Æ÷¹¤×÷Ä£Ê½ÎªÄ£Ê½1
+  59   1              TMOD |= 0X01;
+  60   1              ET0 = 1;                                                                //Ê¹ÄÜ¶¨Ê±Æ÷0ÖÐ¶Ï
+  61   1              TR0 = 1;                                                                //Ê¹ÄÜ¶¨Ê±Æ÷0
+  62   1      }
+  63          void Interrupt_Timer0() interrupt 1
+  64          {
+  65   1              TH0 = T0H;                              //¶¨Ê±Æ÷¼Ä´æÆ÷¸³³õÖµ
+  66   1              TL0 = T0L;
+  67   1              UART_RxMonitor(1);              //´®¿ÚÍ¨ÐÅ¼à¿Ø
+  68   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    538    ----
+   CONSTANT SIZE    =      4    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2       8
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)
